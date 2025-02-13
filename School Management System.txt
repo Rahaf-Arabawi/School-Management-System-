@@ -1,0 +1,190 @@
+CREATE TABLE Classroom 
+(
+ Classroom_ID INT(11) AUTO_INCREMENT PRIMARY KEY, 
+ Classroom_Name VARCHAR(25) NOT NULL, 
+ Capacity INT(11) NOT NULL
+);
+
+INSERT INTO Classroom (ClassroomID, ClassroomName, Capacity) VALUES
+(1, 'Grade 1 - A', 30) ,
+ (2, 'Grade 1 - B', 28) ,
+ (3, 'Grade 2 - A', 32) ,
+ (4, 'Grade 2 - B', 29) ,
+ (5, 'Grade 3 - A', 31);
+
+SELECT Classroom_ID,
+AVG(Capacity) AS AVG_Capacity
+FROM classroom
+GROUP BY Classroom_ID;
+
+SELECT Classroom_ID, COUNT(*) AS total_students
+FROM student
+GROUP BY Classroom_ID;
+
+SELECT MIN(Capacity) AS min_capacity FROM classroom;
+
+SELECT MAX(Capacity) AS max_capacity FROM classroom;
+
+*************************************************************
+
+CREATE TABLE Student 
+(
+ Student_ID INT(11) AUTO_INCREMENT PRIMARY KEY,
+ Name VARCHAR(25) NOT NULL, 
+ DateOfBirth DATE NOT NULL, 
+ Gender ENUM('Male', 'Female') NOT NULL, 
+ Classroom_ID INT(11) NOT NULL
+
+ALTER TABLE Student 
+ADD CONSTRAINT FK_Classroom 
+FOREIGN KEY (Classroom_ID) 
+REFERENCES Classroom(Classroom_ID) 
+ON DELETE CASCADE;
+);
+
+INSERT INTO Student (Student_ID, Name, DateOfBirth, Gender, Classroom_ID) VALUES
+(301, 'Alice Johnson', '2012-05-10', 'Female', 1) ,
+(302, 'David Williams', '2011-07-22', 'Male', 2) ,
+(303, 'Sophia Martinez', '2012-03-18', 'Female', 3) ,
+(304, 'James Anderson', '2011-09-30', 'Male', 4) ,
+(305, 'Olivia Thomas', '2012-01-25', 'Female', 5);
+
+
+SELECT * FROM student
+WHERE  Gender =  'Female';
+
+SELECT * FROM student 
+WHERE DateOfBirth = '2011-01-01' AND DateOfBirth = '2012-12-31' ;
+
+SELECT * FROM student 
+WHERE Name LIKE 'a%' ;
+
+SELECT * FROM student 
+WHERE Name LIKE '%a%' ;
+
+SELECT COUNT(*) AS total_student FROM student;
+
+*************************************************************
+
+CREATE TABLE Teacher
+(
+ Teacher_ID INT(11) AUTO_INCREMENT PRIMARY KEY, 
+ Name VARCHAR(25) NOT NULL, 
+ Email VARCHAR(50) NOT NULL UNIQUE, 
+ PhoneNumber VARCHAR(25) NOT NULL,
+ Specialization VARCHAR(50) NOT NULL
+);
+
+INSERT INTO Teacher (Teacher_ID, Name, Email, PhoneNumber, Specialization) VALUES
+ (101, 'John Smith', 'john.smith@example.com', '123-456-7890', 'Mathematics'), 
+(102, 'Jane Doe', 'jane.doe@example.com', '987-654-3210', 'English'), 
+ (103, 'Robert Brown', 'robert.brown@example.com', '555-666-7777', 'Science') ,
+ (104, 'Emily Clark', 'emily.clark@example.com', '444-555-6666', 'History') ,
+(105, 'Michael Johnson', 'michael.johnson@example.com', '111-222-3333', 'Physics');
+
+SELECT * FROM teacher
+WHERE  Specialization = 'Mathematics'  OR Specialization = 'Physics' ;
+
+*************************************************************
+
+CREATE TABLE Course 
+(
+   Course_ID INT(11) AUTO_INCREMENT PRIMARY KEY, 
+   Course_Name VARCHAR(25) NOT NULL,
+   Teacher_ID INT(11) NOT NULL
+
+ALTER TABLE Course 
+ADD CONSTRAINT FK_Teacher 
+FOREIGN KEY (Teacher_ID) 
+REFERENCES Teacher(Teacher_ID) 
+ON DELETE CASCADE;
+
+);
+
+INSERT INTO Course (Course_ID, Course_Name, Teacher_ID) VALUES
+(201, 'Algebra I', 101) ,
+(202, 'Grammar Basics', 102) ,
+(203, 'Biology Fundamentals', 103) ,
+(204, 'World History', 104) ,
+(205, 'Introduction to Physics', 105);
+
+SELECT * FROM course
+ORDER BY Course_Name ASC;
+
+*************************************************************
+
+CREATE TABLE Attendance (
+    Attendance_ID INT(11) AUTO_INCREMENT PRIMARY KEY,  
+    Student_ID INT(11) NOT NULL, 
+    Course_ID INT(11) NOT NULL,
+    Date DATE NOT NULL,
+    Status ENUM('Present', 'Absent') NOT NULL
+) ;
+
+INSERT INTO  Attendance (Attendance_ID, Student_ID, Course_ID, Date, Status) VALUES
+ (401, 301, 201, '2025-02-12', 'Present') ,
+ (402, 302, 202, '2025-02-12', 'Absent') ,
+ (403, 303, 203, '2025-02-12', 'Present') ,
+ (404, 304, 204, '2025-02-12', 'Present') ,
+ (405, 305, 205, '2025-02-12', 'Absent');
+*************************************************************
+
+SELECT student.Name, classroom.Classroom_Name
+FROM student
+JOIN classroom ON student.Classroom_ID = classroom.Classroom_ID;
+
+SELECT course.Course_Name, teacher.Name
+FROM course
+JOIN teacher ON course.Teacher_ID = teacher.Teacher_ID;
+
+SELECT student.Name, attendance.Date
+FROM student
+LEFT JOIN attendance ON student.Student_ID = attendance.Student_ID;
+
+SELECT course.Course_Name, teacher.Name
+FROM course
+LEFT JOIN teacher ON course.Teacher_ID = teacher.Teacher_ID;
+
+SELECT teacher.Name, course.Course_Name
+FROM teacher
+LEFT JOIN course ON teacher.Teacher_ID = course.Teacher_ID;
+
+SELECT DISTINCT student.Name
+FROM student
+INNER JOIN attendance ON student.Student_ID = attendance.Student_ID;
+
+SELECT student.Name
+FROM student
+LEFT JOIN attendance ON student.Student_ID = attendance.Student_ID
+WHERE attendance.Student_ID IS NULL;
+
+SELECT student.Name
+FROM student
+INNER JOIN classroom ON student.Classroom_ID = classroom.Classroom_ID
+WHERE classroom.Capacity = (SELECT MAX(Capacity) FROM classroom);
+
+SELECT course.Course_Name
+FROM course
+INNER JOIN teacher ON course.Teacher_ID = teacher.Teacher_ID
+WHERE teacher.Name = 'John Smith';
+
+SELECT student.Name
+FROM student
+INNER JOIN attendance ON student.Student_ID = attendance.Student_ID
+INNER JOIN course ON attendance.Course_ID = course.Course_ID
+WHERE course.Course_Name = 'Algebra I';
+
+SELECT Specialization, COUNT(Teacher_ID) AS teacher_count
+FROM teacher
+GROUP BY Specialization;
+
+SELECT Course_ID, COUNT(*)
+FROM attendance
+GROUP BY Course_ID
+HAVING COUNT(*) >1
+
+SELECT teacher_id, COUNT(*) AS num_course
+FROM course
+GROUP BY teacher_id
+ORDER BY num_course DESC
+LIMIT 10;
